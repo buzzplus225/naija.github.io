@@ -1,5 +1,5 @@
 # scraper_traducteur.py
-# Version avec XPaths spécifiques pour NaijaNews
+# Version robuste avec sélecteurs CSS et logs de débogage
 
 import requests
 from lxml import html
@@ -20,7 +20,7 @@ MIN_DELAY = 0.5
 MAX_DELAY = 1.5
 CACHE_FILE = "articles_cache.json"
 FEED_FILE = "feed.xml"
-DEBUG = True  # Mode debug (peut être désactivé)
+DEBUG_HTML_FILE = "debug_page.html"   # Sauvegarde du HTML pour analyse
 
 # -------------------- LOGGING --------------------
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 # -------------------- TRADUCTION --------------------
 def translate_text(text: str, target_lang: str = 'fr') -> str:
-    """Traduit un texte en français avec gestion d'erreur."""
     if not text:
         return ""
     try:
@@ -40,48 +39,32 @@ def translate_text(text: str, target_lang: str = 'fr') -> str:
         logger.warning(f"Erreur de traduction: {e}")
         return text
 
-# -------------------- FONCTIONS UTILITAIRES --------------------
+# -------------------- CHARGEMENT DE LA PAGE --------------------
 def fetch_page(url: str) -> Optional[html.HtmlElement]:
-    """Télécharge la page et retourne un arbre lxml."""
     try:
+        # Tentative avec cloudscraper (anti-bot)
         try:
             import cloudscraper
             scraper = cloudscraper.create_scraper()
-            response = scraper.get(url, timeout=10)
+            response = scraper.get(url, timeout=15)
         except ImportError:
-            response = requests.get(url, timeout=10, headers={
+            response = requests.get(url, timeout=15, headers={
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             })
         response.raise_for_status()
+        
+        # Sauvegarde du HTML pour débogage (si besoin)
+        with open(DEBUG_HTML_FILE, 'w', encoding='utf-8') as f:
+            f.write(response.text)
+        logger.info(f"HTML sauvegardé dans {DEBUG_HTML_FILE}")
+
         return html.fromstring(response.content)
     except Exception as e:
         logger.error(f"Erreur lors du fetch de {url}: {e}")
         return None
 
-def clean_date(date_str: str) -> Optional[datetime]:
-    """Nettoie une chaîne de date et retourne un objet datetime (non utilisé ici, mais gardé)."""
-    if not date_str:
-        return datetime.now(timezone.utc)
-    date_str = date_str.strip()
-    formats = [
-        "%Y-%m-%dT%H:%M:%S%z",
-        "%Y-%m-%dT%H:%M:%S",
-        "%Y-%m-%d %H:%M:%S",
-        "%Y-%m-%d",
-        "%d/%m/%Y",
-        "%m/%d/%Y",
-        "%B %d, %Y",
-        "%d %B %Y"
-    ]
-    for fmt in formats:
-        try:
-            return datetime.strptime(date_str[:19], fmt)
-        except (ValueError, TypeError):
-            continue
-    return datetime.now(timezone.utc)
-
+# -------------------- CACHE --------------------
 def load_cache() -> List[str]:
-    """Charge les URLs déjà scrapées depuis le cache."""
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, 'r', encoding='utf-8') as f:
@@ -92,56 +75,87 @@ def load_cache() -> List[str]:
     return []
 
 def save_cache(urls: List[str]):
-    """Sauvegarde les URLs scrapées dans le cache."""
     try:
         with open(CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump({'urls': urls, 'updated': datetime.now().isoformat()}, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.warning(f"Erreur de sauvegarde du cache: {e}")
 
-# -------------------- EXTRACTION AVEC XPATHS SPÉCIFIQUES --------------------
+# -------------------- EXTRACTION FLEXIBLE --------------------
 def scrape_naijanews_com() -> List[dict]:
-    """
-    Parse la page d'accueil de NaijaNews en utilisant les XPaths fournis :
-      - Article : //article[contains(@class, 'nn-post-card')]
-      - Titre   : ./div[contains(@class, 'nn-post-card-body')]/h3
-      - URL     : ./a[contains(@class, 'nn-post-card-link')]/@href
-      - Image   : ./a/figure/picture/img/@src
-      - Description (alt) : ./a/figure/picture/img/@alt
-      - Date    : non disponible -> datetime actuel
-    """
     articles = []
     cache_urls = load_cache()
     new_urls = []
-    
+
     tree = fetch_page(SOURCE_URL)
     if tree is None:
         return articles
 
-    # Sélection des articles avec le XPath exact
-    article_nodes = tree.xpath('//article[contains(@class, "nn-post-card")]')
+    # Recherche tous les conteneurs potentiels d'articles
+    # On essaie plusieurs sélecteurs courants
+    selectors = [
+        '//article',                          # balise article
+        '//div[contains(@class, "post")]',    # div avec classe post
+        '//div[contains(@class, "entry")]',   # div avec classe entry
+        '//div[contains(@class, "item")]',    # div avec classe item
+        '//li[contains(@class, "post")]',     # li avec classe post
+    ]
+    article_nodes = []
+    for sel in selectors:
+        nodes = tree.xpath(sel)
+        if nodes:
+            logger.info(f"Sélecteur '{sel}' a trouvé {len(nodes)} éléments")
+            article_nodes = nodes
+            break
+    if not article_nodes:
+        # Dernier recours : chercher tous les liens avec titre
+        logger.warning("Aucun sélecteur d'article trouvé, recherche de liens avec h2/h3...")
+        # On cherche les titres potentiels
+        titles = tree.xpath('//h2 | //h3')
+        for t in titles:
+            parent = t.getparent()
+            while parent is not None and parent.tag != 'body':
+                # On remonte pour trouver un conteneur
+                if parent.tag in ['article', 'div', 'li']:
+                    article_nodes.append(parent)
+                    break
+                parent = parent.getparent()
+        # Dédoublonner
+        seen = set()
+        unique_nodes = []
+        for node in article_nodes:
+            if node not in seen:
+                seen.add(node)
+                unique_nodes.append(node)
+        article_nodes = unique_nodes
+
     logger.info(f"📌 Nombre d'articles détectés : {len(article_nodes)}")
 
     for node in article_nodes[:MAX_ARTICLES]:
         try:
             # --- TITRE ---
-            title_elem = node.xpath('./div[contains(@class, "nn-post-card-body")]/h3')
+            title_elem = node.xpath('.//h2 | .//h3 | .//h1 | .//div[contains(@class, "title")]')
             title = title_elem[0].text_content().strip() if title_elem else ""
             if not title:
                 continue
 
             # --- URL ---
-            url_elem = node.xpath('./a[contains(@class, "nn-post-card-link")]/@href')
-            url = url_elem[0].strip() if url_elem else ""
+            # Chercher un lien dans le conteneur
+            link_elem = node.xpath('.//a[contains(@href, "http")]')
+            url = ""
+            for a in link_elem:
+                href = a.get('href', '').strip()
+                if href and ('naijanews.com' in href or href.startswith('/')):
+                    url = href
+                    break
             if not url:
                 continue
-            # Normalisation
             if url.startswith('/'):
                 url = 'https://www.naijanews.com' + url
             elif not url.startswith('http'):
                 continue
 
-            # Vérification du cache et doublons
+            # Cache / doublon
             if url in cache_urls:
                 logger.debug(f"⏭️ Article déjà scrapé: {url}")
                 continue
@@ -149,29 +163,39 @@ def scrape_naijanews_com() -> List[dict]:
                 continue
 
             # --- IMAGE ---
-            img_elem = node.xpath('./a/figure/picture/img/@src')
+            img_elem = node.xpath('.//img/@src')
             image = img_elem[0].strip() if img_elem else ""
             if image and image.startswith('/'):
                 image = 'https://www.naijanews.com' + image
 
-            # --- DESCRIPTION (alt de l'image) ---
-            alt_elem = node.xpath('./a/figure/picture/img/@alt')
-            description = alt_elem[0].strip() if alt_elem else title
+            # --- DESCRIPTION (métadonnées ou alt) ---
+            desc = ""
+            # Essayer la balise meta description
+            meta_desc = tree.xpath('//meta[@name="description"]/@content')
+            if meta_desc:
+                desc = meta_desc[0].strip()
+            else:
+                # Sinon utiliser l'alt de l'image ou le texte du conteneur
+                alt_elem = node.xpath('.//img/@alt')
+                if alt_elem:
+                    desc = alt_elem[0].strip()
+            if not desc:
+                desc = title
 
-            # --- DATE (non disponible) ---
+            # --- DATE (non disponible, on utilise l'heure actuelle) ---
             date_obj = datetime.now(timezone.utc)
 
             # --- TRADUCTION ---
             logger.info(f"🌐 Traduction de: {title[:30]}...")
             title_fr = translate_text(title)
-            description_fr = translate_text(description)
+            description_fr = translate_text(desc)
 
             article = {
                 'title': title,
                 'title_fr': title_fr,
                 'url': url,
                 'image': image,
-                'description': description,
+                'description': desc,
                 'description_fr': description_fr,
                 'date': date_obj,
                 'date_str': date_obj.isoformat()
@@ -195,32 +219,23 @@ def scrape_naijanews_com() -> List[dict]:
 
     return articles
 
-# -------------------- GÉNÉRATION DU FEED RSS --------------------
+# -------------------- GÉNÉRATION DU FEED --------------------
 def generate_feed(articles: List[dict], output_file: str = FEED_FILE):
-    """Génère un fichier feed.xml à partir des articles."""
-    if not articles:
-        logger.warning("Aucun article à mettre dans le feed")
-        fg = FeedGenerator()
-        fg.title("Naija News - Actualités traduites en français")
-        fg.description("Aucun article disponible actuellement")
-        fg.link(href="https://buzzplus225.github.io/naija.github.io/", rel="alternate")
-        fg.link(href="https://buzzplus225.github.io/naija.github.io/feed.xml", rel="self")
-        fg.language("fr")
-        fg.lastBuildDate(datetime.now().strftime("%a, %d %b %Y %H:%M:%S +0000"))
-        rss_str = fg.rss_str(pretty=True)
-        with open(output_file, 'wb') as f:
-            f.write(rss_str)
-        logger.info(f"✅ Feed RSS vide créé: {output_file}")
-        return
-
     fg = FeedGenerator()
     fg.title("Naija News - Actualités traduites en français")
-    fg.description("Flux RSS des actualités de NaijaNews automatiquement traduites en français")
+    fg.description("Flux RSS des actualités de NaijaNews automatiquement traduites en français" if articles else "Aucun article disponible actuellement")
     fg.link(href="https://buzzplus225.github.io/naija.github.io/", rel="alternate")
     fg.link(href="https://buzzplus225.github.io/naija.github.io/feed.xml", rel="self")
     fg.language("fr")
     fg.lastBuildDate(datetime.now().strftime("%a, %d %b %Y %H:%M:%S +0000"))
     fg.generator("Scraper Traducteur NaijaNews v2.0")
+
+    if not articles:
+        rss_str = fg.rss_str(pretty=True)
+        with open(output_file, 'wb') as f:
+            f.write(rss_str)
+        logger.info(f"✅ Feed RSS vide créé: {output_file}")
+        return
 
     for article in articles[:20]:
         fe = fg.add_entry()
@@ -245,9 +260,7 @@ def generate_feed(articles: List[dict], output_file: str = FEED_FILE):
     
     logger.info(f"✅ Feed RSS généré: {output_file} ({len(articles)} articles)")
 
-# -------------------- SAUVEGARDE JSON --------------------
 def save_json(articles: List[dict], output_file: str = "articles.json"):
-    """Sauvegarde les articles en JSON pour débogage."""
     try:
         articles_serializable = []
         for a in articles:
@@ -261,9 +274,9 @@ def save_json(articles: List[dict], output_file: str = "articles.json"):
     except Exception as e:
         logger.error(f"Erreur de sauvegarde JSON: {e}")
 
-# -------------------- POINT D'ENTRÉE --------------------
+# -------------------- MAIN --------------------
 if __name__ == "__main__":
-    print("🚀 Début du scraping avec XPaths personnalisés...")
+    print("🚀 Début du scraping avec sélecteurs flexibles...")
     start_time = time.time()
     
     articles = scrape_naijanews_com()
@@ -274,9 +287,7 @@ if __name__ == "__main__":
     if articles:
         generate_feed(articles)
         save_json(articles)
-        print(f"✅ Fichiers générés:")
-        print(f"   - {FEED_FILE}")
-        print(f"   - articles.json")
+        print(f"✅ Fichiers générés: {FEED_FILE}, articles.json")
     else:
         print("❌ Aucun article trouvé")
         generate_feed([], "feed.xml")
