@@ -100,7 +100,7 @@ def save_cache(urls: List[str]):
         logger.warning(f"Erreur de sauvegarde du cache: {e}")
 
 # -------------------- EXTRACTION AVEC XPATHS SPÉCIFIQUES --------------------
-def scrape_legit_ng() -> List[dict]:
+def scrape_naijanews_com() -> List[dict]:
     """
     Parse la page d'accueil de NaijaNews en utilisant les XPaths fournis :
       - Article : //article[contains(@class, 'nn-post-card')]
@@ -266,7 +266,7 @@ if __name__ == "__main__":
     print("🚀 Début du scraping avec XPaths personnalisés...")
     start_time = time.time()
     
-    articles = scrape_legit_ng()
+    articles = scrape_naijanews_com()
     
     elapsed = time.time() - start_time
     print(f"✅ Scraping terminé. {len(articles)} articles récupérés en {elapsed:.2f}s")
