@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0">
+  <channel>
+    <title>Naija News - Actualités traduites en français</title>
+    <link>https://buzzplus225.github.io/naija.github.io/feed.xml</link>
+    <description>Flux RSS des actualités de NaijaNews automatiquement traduites en français</description>
+    <atom:link href="https://buzzplus225.github.io/naija.github.io/feed.xml" rel="self"/>
+    <docs>http://www.rssboard.org/rss-specification</docs>
+    <generator>Scraper Traducteur NaijaNews v2.0</generator>
+    <language>fr</language>
+    <lastBuildDate>Sat, 05 Sep 2026 17:58:10 +0000</lastBuildDate>
+    <item>
+      <title>Atiku, Osinbajo et Mark assistent aux funérailles de la mère d'Amaechi</title>
+      <link>https://www.naijanews.com/2026/09/05/amaechis-mothers-funeral/</link>
+      <description>Naija News est l'un des principaux journaux nigérians qui fournit des informations de dernière minute, de politique, de sport, d'affaires et de divertissement à travers le Nigeria et le monde.</description>
+      <content:encoded><![CDATA[<img src="https://www.naijanews.com/wp-content/uploads/2026/09/HE-Rotimi-Amaechi-and-Dame-Judith-Amaechi.-Photo-credit-CRA-Advocacy-Network-760x456.png" alt="Atiku, Osinbajo, Mark Attend Amaechi’s Mother’s Funeral" style="max-width:100%;"/><br/><p>Naija News est l'un des principaux journaux nigérians qui fournit des informations de dernière minute, de politique, de sport, d'affaires et de divertissement à travers le Nigeria et le monde.</p>]]></content:encoded>
+      <guid isPermaLink="true">https://www.naijanews.com/2026/09/05/amaechis-mothers-funeral/</guid>
+      <pubDate>Sat, 05 Sep 2026 17:58:07 +0000</pubDate>
+    </item>
+    <item>
+      <title>Abbas dissout le comité d’enquête du PFIPC</title>
+      <link>https://www.naijanews.com/2026/09/05/abbas-dissolve-pfipc-investigative-panel/</link>
+      <description>Naija News est l'un des principaux journaux nigérians qui fournit des informations de dernière minute, de politique, de sport, d'affaires et de divertissement à travers le Nigeria et le monde.</description>
+      <content:encoded><![CDATA[<img src="https://www.naijanews.com/wp-content/uploads/2026/09/Speaker-House-of-Reps-Tajudeen-Abbas-760x456.png" alt="Abbas Dissolve PFIPC Investigative Panel" style="max-width:100%;"/><br/><p>Naija News est l'un des principaux journaux nigérians qui fournit des informations de dernière minute, de politique, de sport, d'affaires et de divertissement à travers le Nigeria et le monde.</p>]]></content:encoded>
+      <guid isPermaLink="true">https://www.naijanews.com/2026/09/05/abbas-dissolve-pfipc-investigative-panel/</guid>
+      <pubDate>Sat, 05 Sep 2026 17:58:05 +0000</pubDate>
+    </item>
+    <item>
+      <title>Le marché du courrier électronique au Nigeria accueille un nouvel entrant alors que Promiseland lance Protaxi le 1er octobre</title>
+      <link>https://www.naijanews.com/2026/09/05/nigerias-e-hailing-market-gets-new-entrant-as-promiseland-launches-protaxi-october-1/</link>
+      <description>Naija News est l'un des principaux journaux nigérians qui fournit des informations de dernière minute, de politique, de sport, d'affaires et de divertissement à travers le Nigeria et le monde.</description>
+      <content:encoded><![CDATA[<img src="https://www.naijanews.com/wp-content/uploads/2026/09/Lawrence-Oloche-760x456.jpg" alt="Nigeria’s E-hailing Market Gets New Entrant As Promiseland Launches Protaxi October 1" style="max-width:100%;"/><br/><p>Naija News est l'un des principaux journaux nigérians qui fournit des informations de dernière minute, de politique, de sport, d'affaires et de divertissement à travers le Nigeria et le monde.</p>]]></content:encoded>
+      <guid isPermaLink="true">https://www.naijanews.com/2026/09/05/nigerias-e-hailing-market-gets-new-entrant-as-promiseland-launches-protaxi-october-1/</guid>
+      <pubDate>Sat, 05 Sep 2026 17:58:03 +0000</pubDate>
+    </item>
+  </channel>
+</rss>
