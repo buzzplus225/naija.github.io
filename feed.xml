@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0">
+  <channel>
+    <title>Naija News - Actualités traduites en français</title>
+    <link>https://buzzplus225.github.io/naija.github.io/feed.xml</link>
+    <description>Flux RSS des actualités de NaijaNews automatiquement traduites en français</description>
+    <atom:link href="https://buzzplus225.github.io/naija.github.io/feed.xml" rel="self"/>
+    <docs>http://www.rssboard.org/rss-specification</docs>
+    <generator>Scraper Traducteur NaijaNews v2.0</generator>
+    <language>fr</language>
+    <lastBuildDate>Sat, 26 Sep 2026 19:07:51 +0000</lastBuildDate>
+    <item>
+      <title>Peter Obi Urges Editors To Expose Politicians’ Past Wrongdoings</title>
+      <link>https://www.naijanews.com/2026/09/26/peter-obi-urges-editors-to-expose-politicians-past-wrongdoings/</link>
+      <description>Naija News is a leading Nigerian Newspaper providing Breaking News, politics, sports, business and entertainment news across Nigeria and the world.</description>
+      <content:encoded><![CDATA[<img src="https://www.naijanews.com/wp-content/uploads/2026/09/NDC-Presidential-candidate-Peter-Obi-760x456.png" alt="Peter Obi Urges Editors To Expose Politicians’ Past Wrongdoings" style="max-width:100%;"/><br/><p>Naija News is a leading Nigerian Newspaper providing Breaking News, politics, sports, business and entertainment news across Nigeria and the world.</p>]]></content:encoded>
+      <guid isPermaLink="true">https://www.naijanews.com/2026/09/26/peter-obi-urges-editors-to-expose-politicians-past-wrongdoings/</guid>
+      <pubDate>Sat, 26 Sep 2026 19:07:49 +0000</pubDate>
+    </item>
+  </channel>
+</rss>
