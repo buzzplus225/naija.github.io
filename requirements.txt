@@ -1,0 +1,25 @@
+# ==============================================================================
+# Dépendances pour le scraper et traducteur automatique (Naija News)
+# ==============================================================================
+
+# Web Scraping & Parsing
+cloudscraper>=1.2.71
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+requests>=2.31.0
+
+# Génération de flux RSS
+feedgen>=0.9.0
+
+# Traduction automatique (Légère et ultra-rapide)
+deep-translator>=1.11.4
+
+# Utilitaires
+python-dateutil>=2.8.2
+
+# ==============================================================================
+# Notes importantes:
+# - python-dateutil est utilisé pour le parsing avancé des dates
+# - feedgen génère le fichier feed.xml
+# - deep-translator traduit l'anglais vers le français
+# ==============================================================================
